@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>할인 쿠폰 확인</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      background: #f7f7f7;
+    }
+    h1 {
+      text-align: center;
+    }
+    .box {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .info {
+      margin-bottom: 10px;
+    }
+    .status {
+      font-weight: bold;
+      font-size: 1.2em;
+      margin: 20px 0;
+    }
+    .ok {
+      color: green;
+    }
+    .expired {
+      color: red;
+    }
+    .sms-button {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 15px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>할인 쿠폰 확인</h1>
+  <div class="box">
+    <div class="info"><strong>고객명:</strong> <span id="name"></span></div>
+    <div class="info"><strong>전화번호:</strong> <span id="tel"></span></div>
+    <div class="info"><strong>발급처:</strong> <span id="src"></span></div>
+    <div class="info"><strong>발급일:</strong> <span id="issued"></span></div>
+    <div class="info"><strong>만료일:</strong> <span id="expired"></span></div>
+    <div class="info"><strong>오늘 날짜:</strong> <span id="today"></span></div>
+    <div class="status" id="status"></div>
+    <a id="sms" class="sms-button">📩 문자 보내기</a>
+  </div>
+
+  <script>
+    function getParam(key) {
+      return new URLSearchParams(location.search).get(key) || "";
+    }
+
+    const name = decodeURIComponent(getParam("name"));
+    const tel = getParam("tel");
+    const issuedRaw = getParam("issued");
+    const src = getParam("src") === "gym" ? "헬스장" : "사우나";
+
+    const issuedDate = new Date(`${issuedRaw.substring(0,4)}-${issuedRaw.substring(4,6)}-${issuedRaw.substring(6,8)}`);
+    const expiredDate = new Date(issuedDate);
+    expiredDate.setDate(expiredDate.getDate() + 31);
+    const today = new Date();
+
+    document.getElementById("name").textContent = name;
+    document.getElementById("tel").textContent = tel;
+    document.getElementById("src").textContent = src;
+    document.getElementById("issued").textContent = issuedDate.toISOString().split("T")[0];
+    document.getElementById("expired").textContent = expiredDate.toISOString().split("T")[0];
+    document.getElementById("today").textContent = today.toISOString().split("T")[0];
+
+    const statusEl = document.getElementById("status");
+    if (today <= expiredDate) {
+      statusEl.textContent = "✅ 오늘 사용 가능합니다 (유효기간 내)";
+      statusEl.classList.add("ok");
+    } else {
+      statusEl.textContent = "❌ 만료된 쿠폰입니다";
+      statusEl.classList.add("expired");
+    }
+
+    // 문자 보내기 버튼 생성
+    const smsText = `음료가 준비되었습니다. 카운터로 와주세요.`;
+    document.getElementById("sms").href = `sms:${tel}?body=${encodeURIComponent(smsText)}`;
+  </script>
+</body>
+</html>
