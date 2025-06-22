@@ -58,34 +58,40 @@
 
     <label for="src">발급처</label>
     <select id="src">
-      <option value="gym">헬스장</option>
-      <option value="spa">사우나</option>
+      <option value="헬스장">헬스장</option>
+      <option value="사우나">사우나</option>
     </select>
 
-    <button type="submit">쿠폰 링크 생성</button>
+    <button type="submit">쿠폰 발급</button>
     <div id="result"></div>
   </form>
 
   <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbwv3RyQ7ncq7MVN1Zsg6I65260CmBBZproUq-fQoWgjDSVP86YrB8bfhIYU11GFDqt4/exec";
+
     document.getElementById("couponForm").addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const name = encodeURIComponent(document.getElementById("name").value);
+      const name = document.getElementById("name").value;
       const tel = document.getElementById("tel").value;
       const src = document.getElementById("src").value;
 
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = ("0" + (today.getMonth() + 1)).slice(-2);
-      const dd = ("0" + today.getDate()).slice(-2);
-      const issued = `${yyyy}${mm}${dd}`;
-
-      const randomId = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
-
-      const link = `https://alcoholwolf.github.io/coupon-check/check.html?id=${randomId}&issued=${issued}&src=${src}&name=${name}&tel=${tel}`;
-
-      const resultBox = document.getElementById("result");
-      resultBox.innerHTML = `✅ <a href="${link}" target="_blank">쿠폰 확인 링크 열기</a>`;
+      fetch(scriptURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, tel, src })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById("result").innerHTML = `✅ <a href="${data.link}" target="_blank">쿠폰 확인 링크 열기</a>`;
+          } else {
+            document.getElementById("result").innerHTML = "❌ 오류가 발생했습니다.";
+          }
+        })
+        .catch(() => {
+          document.getElementById("result").innerHTML = "❌ 서버 통신 실패";
+        });
     });
   </script>
 </body>
